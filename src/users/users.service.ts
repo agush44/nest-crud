@@ -29,27 +29,33 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  async create(data: CreateUserDto): Promise<UserResponseDto> {
+  async create(data: CreateUserDto): Promise<User> {
     const existingUser = await this.userRepository.findOne({
       where: { username: data.username },
     });
+
     if (existingUser) {
       throw new BadRequestException('Username is already taken');
     }
 
+    let hashedPassword: string | undefined = undefined;
     if (data.password) {
-      data.password = await this.hashPassword(data.password);
+      hashedPassword = await this.hashPassword(data.password);
     }
 
-    const newUser = this.userRepository.create(data);
+    const newUser = this.userRepository.create({
+      ...data,
+      password: hashedPassword,
+    });
+
     const savedUser = await this.userRepository.save(newUser);
 
-    return this.toResponseDto(savedUser);
+    return savedUser;
   }
 
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.userRepository.find();
-    return users.map(this.toResponseDto);
+    return users.map((user) => this.toResponseDto(user));
   }
 
   async findOne(id: string): Promise<UserResponseDto> {
@@ -58,6 +64,10 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     return this.toResponseDto(user);
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { id } });
   }
 
   async update(
@@ -91,11 +101,25 @@ export class UsersService {
     };
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async delete(id: string): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
     await this.userRepository.delete(id);
     return { message: 'User deleted successfully' };
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { username },
+      select: [
+        'id',
+        'username',
+        'password',
+        'isActive',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
   }
 }

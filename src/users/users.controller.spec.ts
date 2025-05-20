@@ -9,12 +9,14 @@ describe('UsersController', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let service: UsersService;
 
+  const now = new Date();
+
   const mockUserResponse: UserResponseDto = {
     id: 'uuid-123',
     username: 'testuser',
     isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
   };
 
   const mockUsersService = {
@@ -43,6 +45,8 @@ describe('UsersController', () => {
 
     controller = module.get<UsersController>(UsersController);
     service = module.get<UsersService>(UsersService);
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -76,22 +80,19 @@ describe('UsersController', () => {
 
   describe('update', () => {
     it('should update a user', async () => {
-      const result = await controller.update('uuid-123', {
-        username: 'updated',
-      });
+      const dto = { username: 'updated' };
+      const result = await controller.update('uuid-123', dto);
       expect(result).toEqual({
         message: 'User updated successfully',
         user: mockUserResponse,
       });
-      expect(mockUsersService.update).toHaveBeenCalledWith('uuid-123', {
-        username: 'updated',
-      });
+      expect(mockUsersService.update).toHaveBeenCalledWith('uuid-123', dto);
       expect(mockUsersService.update).toHaveBeenCalledTimes(1);
     });
   });
 
   it('should delete a user', async () => {
-    expect(await controller.remove('uuid-123')).toEqual({
+    expect(await controller.delete('uuid-123')).toEqual({
       message: 'User deleted successfully',
     });
     expect(mockUsersService.remove).toHaveBeenCalledWith('uuid-123');

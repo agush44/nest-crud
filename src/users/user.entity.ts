@@ -4,9 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  BeforeInsert,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
 @Entity('users')
 export class User {
@@ -27,19 +25,4 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt!: Date;
-
-  @BeforeInsert()
-  async hashPassword(): Promise<void> {
-    if (!this.password) return;
-
-    try {
-      const salt: string = await bcrypt.genSalt(10);
-      const hashedPassword: string = await bcrypt.hash(this.password, salt);
-      this.password = hashedPassword;
-    } catch (error) {
-      const err = error as Error;
-      console.error('Error al hashear la contraseña:', err.message);
-      throw err;
-    }
-  }
 }
