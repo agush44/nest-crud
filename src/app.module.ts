@@ -6,7 +6,6 @@ import { AuthModule } from './auth/auth.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { User } from './users/user.entity.js';
 import { Product } from './products/product.entity.js';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
